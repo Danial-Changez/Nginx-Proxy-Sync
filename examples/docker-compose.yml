@@ -1,0 +1,65 @@
+services:
+  # Reverse Proxy
+  npm:
+    container_name: npm
+    image: jc21/nginx-proxy-manager:latest
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy-net
+    restart: unless-stopped
+
+  # Nginx Proxy Sync
+  nginx-proxy-sync:
+    container_name: nginx-proxy-sync
+    build: .
+    environment:
+      NPM_URL: http://npm:81
+      NPM_EMAIL: ${NPM_EMAIL}
+      NPM_PASSWORD: ${NPM_PASSWORD}
+      NPM_DOMAIN: ${NPM_DOMAIN}
+      NPM_DEFAULT_CERT_NAME: ${NPM_DEFAULT_CERT_NAME}
+      NPM_DELETE_ORPHANS: "true"
+      # Optional - TrueNAS discovery
+      # TRUENAS_URL: ${TRUENAS_URL}
+      # TRUENAS_API_KEY: ${TRUENAS_API_KEY}
+      # TRUENAS_SKIP_APPS: "glances"
+
+      # Optional - Pi-hole DNS sync
+      # PIHOLE_URL: ${PIHOLE_URL}
+      # PIHOLE_PASSWORD: ${PIHOLE_PASSWORD}
+      # NPM_IP: ${NPM_IP}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data:/data
+    networks:
+      - proxy-net
+    depends_on:
+      - npm
+    restart: unless-stopped
+
+  # Example app with labels
+  whoami:
+    container_name: whoami
+    image: traefik/whoami
+    networks:
+      - proxy-net
+    labels:
+      npm.enable: "true"
+      # Optional - overrides
+      # npm.host: "whoami.example.com"
+      # npm.port: "80"
+    restart: unless-stopped
+
+volumes:
+  npm-data:
+  npm-letsencrypt:
+
+networks:
+  proxy-net:
+    driver: bridge
