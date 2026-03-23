@@ -29,6 +29,7 @@ PIHOLE_URL = os.environ.get("PIHOLE_URL", "")
 PIHOLE_PASSWORD = os.environ.get("PIHOLE_PASSWORD", "")
 NPM_IP = os.environ.get("NPM_IP", "")
 
+NPM_NETWORK = os.environ.get("NPM_NETWORK", "")
 SYNC_INTERVAL = int(os.environ.get("NPM_SYNC_INTERVAL", "60"))
 
 MANAGED_MARKER = "# managed-by:nginx-proxy-sync"

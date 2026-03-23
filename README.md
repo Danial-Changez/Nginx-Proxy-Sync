@@ -26,24 +26,23 @@ Auto-discovers services and manages [Nginx Proxy Manager](https://github.com/Ngi
 
 ## Quick Start
 
-Sample compose setup.
+Sample docker-compose setup.
 
 ```yaml
-services:
-  nginx-proxy-sync:
-    build: .
-    environment:
-      NPM_URL: http://npm:81
-      NPM_EMAIL: ${NPM_EMAIL}
-      NPM_PASSWORD: ${NPM_PASSWORD}
-      NPM_DOMAIN: ${NPM_DOMAIN}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./data:/data
-    restart: unless-stopped
+nginx-proxy-sync:
+  build: .
+  env_file: .env
+  environment:
+    NPM_URL: http://npm:81
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  networks:
+    - proxy-net
+  depends_on:
+    - npm
 ```
 
-See [examples/](examples/) for a full compose setup and environment variable reference.
+See [examples/](examples/) for a full compose setup with NPM and a sample app.
 
 ## Docker Labels
 
@@ -61,9 +60,13 @@ labels:
   npm.forward_host: "10.0.0.5"
 ```
 
-If `npm.host` is not set, the domain defaults to `<container_name>.<NPM_DOMAIN>`.
-
-If `npm.port` is not set, the assistant auto-detects the exposed port (skipping 22 and 443).
+| Label | Required | Description |
+|---|---|---|
+| `npm.enable` | Yes | Set to `"true"` to enable proxy discovery |
+| `npm.host` | No | Custom domain (default: `<container_name>.<NPM_DOMAIN>`) |
+| `npm.port` | No | Forward port (auto-detected from exposed ports, skipping 22/443) |
+| `npm.scheme` | No | Forward scheme (default: `NPM_DEFAULT_SCHEME`) |
+| `npm.forward_host` | No | Override forward address (default: container name if on `NPM_NETWORK`, otherwise container IP) |
 
 ## Environment Variables
 
@@ -75,6 +78,7 @@ If `npm.port` is not set, the assistant auto-detects the exposed port (skipping 
 | `NPM_DOMAIN` | No | `""` | Base domain for auto-generated hostnames |
 | `NPM_DEFAULT_CERT_NAME` | No | `""` | Wildcard cert name to assign to hosts |
 | `NPM_DEFAULT_SCHEME` | No | `http` | Default forward scheme |
+| `NPM_NETWORK` | No | `""` | Docker network shared with NPM (containers are forwarded by name instead of IP) |
 | `NPM_DELETE_ORPHANS` | No | `false` | Delete managed hosts whose source is gone |
 | `NPM_SYNC_INTERVAL` | No | `60` | Seconds between periodic syncs |
 | `TRUENAS_URL` | No | `""` | TrueNAS API URL (enables TrueNAS discovery) |
@@ -111,6 +115,6 @@ nginx-proxy-sync/
 │   ├── truenas.py       # TrueNAS app discovery
 │   └── remote.py        # Static JSON file discovery
 └── examples/
-    ├── .env.example     # environment variable reference
+    ├── .env             # environment variable reference
     └── docker-compose.yml
 ```

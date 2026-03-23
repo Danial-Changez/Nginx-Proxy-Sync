@@ -3,7 +3,7 @@
 import time
 import logging
 
-from config import NPM_DOMAIN, DEFAULT_SCHEME
+from config import NPM_DOMAIN, NPM_NETWORK, DEFAULT_SCHEME
 from models import ProxyTarget
 from discovery.base import DiscoverySource
 
@@ -98,8 +98,11 @@ class DockerDiscovery(DiscoverySource):
 
     @staticmethod
     def _get_ip(container):
-        """Get the container's IP on the first available network."""
+        """Get the container's forward address. Uses the container name if it
+        shares the configured NPM_NETWORK (Docker DNS), otherwise the IP."""
         networks = container.attrs.get("NetworkSettings", {}).get("Networks", {})
+        if NPM_NETWORK and NPM_NETWORK in networks:
+            return container.name
         for info in networks.values():
             ip = info.get("IPAddress")
             if ip:
