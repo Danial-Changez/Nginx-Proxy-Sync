@@ -1,12 +1,12 @@
-"""
-NPM Assistant - auto-discovers services and manages Nginx Proxy Manager
-proxy hosts from multiple sources:
+"""Nginx Proxy Sync entry point.
 
-  1. Docker containers with  npm.enable: "true"  label
+Auto-discovers services and manages Nginx Proxy Manager proxy hosts from:
+
+  1. Docker containers with the label  npm.enable: "true"
   2. TrueNAS apps discovered via the TrueNAS API
 
 Anything else (remote VMs, host-network services) should be added
-manually via the NPM UI. The assistant won't touch unmanaged entries.
+manually via the NPM UI. Syncing never modifies entries it did not create.
 
 Per-service label overrides:
   npm.host         custom domain (overrides auto-derived name)
@@ -84,7 +84,6 @@ def main():
     if NPM_DOMAIN:
         log.info("Domain: %s", NPM_DOMAIN)
 
-    # Wait for NPM
     npm = NPMClient()
     for attempt in range(30):
         try:

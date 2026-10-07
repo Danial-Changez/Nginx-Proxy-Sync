@@ -101,8 +101,11 @@ class DockerDiscovery(DiscoverySource):
 
     @staticmethod
     def _get_ip(container):
-        """Get the container's forward address. Uses the container name if it
-        shares the configured NPM_NETWORK (Docker DNS), otherwise the IP."""
+        """Return the container's forward address.
+
+        The container name is used when it shares NPM_NETWORK, where Docker DNS
+        resolves it; otherwise the container's IP address.
+        """
         networks = container.attrs.get("NetworkSettings", {}).get("Networks", {})
         if NPM_NETWORK and NPM_NETWORK in networks:
             return container.name
