@@ -42,3 +42,11 @@ def test_sync_domains_adds_repoints_and_removes_stale(monkeypatch):
         ("PUT", "10.0.0.2 moved.example.test"),
         ("PUT", "10.0.0.2 new.example.test"),
     ]
+
+
+def test_sync_domains_keeps_records_that_point_elsewhere(monkeypatch):
+    client, writes = client_with_records(monkeypatch, ["10.0.0.7 nas.example.test"])
+
+    client.sync_domains({"app.example.test"})
+
+    assert writes == [("PUT", "10.0.0.2 app.example.test")]

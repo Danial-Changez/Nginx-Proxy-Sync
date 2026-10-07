@@ -71,7 +71,10 @@ class PiholeClient:
 
     def sync_domains(self, desired_domains):
         """Ensure all desired domains have local DNS entries.
-        Add missing ones, remove stale ones that match NPM_IP."""
+
+        Adds missing ones and removes stale ones that point at NPM_IP. Records
+        pointing anywhere else were not created here and are left alone.
+        """
         if not self.enabled:
             return
 
@@ -95,7 +98,7 @@ class PiholeClient:
                     log.error("Failed to fix Pi-hole DNS for %s: %s", domain, e)
 
         for domain, ip in existing.items():
-            if domain not in desired_domains:
+            if domain not in desired_domains and ip == NPM_IP:
                 try:
                     self.remove_host(domain, ip)
                 except Exception as e:
