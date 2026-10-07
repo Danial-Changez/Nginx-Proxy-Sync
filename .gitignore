@@ -1,9 +1,15 @@
-data/
+# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 *.egg-info/
-.env
+build/
+dist/
+.venv/
 
-# Example
-!examples/.env
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+
+# Local runtime state
+data/
+.env
