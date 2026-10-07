@@ -4,10 +4,10 @@ import logging
 
 import requests
 
-from clients.npm import NPMClient
-from config import DELETE_ORPHANS, MANAGED_MARKER
-from discovery.base import DiscoverySource
-from models import ProxyTarget
+from nginx_proxy_sync.clients.npm import NPMClient
+from nginx_proxy_sync.config import DELETE_ORPHANS, MANAGED_MARKER
+from nginx_proxy_sync.discovery.base import DiscoverySource
+from nginx_proxy_sync.models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 

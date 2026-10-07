@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from models import ProxyTarget
+from nginx_proxy_sync.models import ProxyTarget
 
 
 class DiscoverySource(ABC):

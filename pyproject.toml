@@ -1,3 +1,8 @@
+[build-system]
+# 77 is the first setuptools release that accepts an SPDX `license` string.
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "nginx-proxy-sync"
 version = "0.1.0"
@@ -16,6 +21,12 @@ dev = [
     "pytest==9.1.1",
     "ruff==0.16.10",
 ]
+
+[project.scripts]
+nginx-proxy-sync = "nginx_proxy_sync.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["nginx_proxy_sync*"]
 
 [tool.ruff]
 line-length = 88

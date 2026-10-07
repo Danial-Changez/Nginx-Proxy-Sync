@@ -5,15 +5,15 @@ from urllib.parse import urlparse
 
 import requests
 
-from config import (
+from nginx_proxy_sync.config import (
     DEFAULT_SCHEME,
     NPM_DOMAIN,
     TRUENAS_API_KEY,
     TRUENAS_SKIP_APPS,
     TRUENAS_URL,
 )
-from discovery.base import DiscoverySource
-from models import ProxyTarget
+from nginx_proxy_sync.discovery.base import DiscoverySource
+from nginx_proxy_sync.models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 

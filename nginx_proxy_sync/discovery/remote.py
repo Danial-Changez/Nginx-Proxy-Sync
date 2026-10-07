@@ -4,9 +4,9 @@ import json
 import logging
 import os
 
-from config import DEFAULT_SCHEME, REMOTE_CONFIG
-from discovery.base import DiscoverySource
-from models import ProxyTarget
+from nginx_proxy_sync.config import DEFAULT_SCHEME, REMOTE_CONFIG
+from nginx_proxy_sync.discovery.base import DiscoverySource
+from nginx_proxy_sync.models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 

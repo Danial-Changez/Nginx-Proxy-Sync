@@ -5,7 +5,13 @@ import time
 
 import requests
 
-from config import DEFAULT_CERT_NAME, MANAGED_MARKER, NPM_EMAIL, NPM_PASSWORD, NPM_URL
+from nginx_proxy_sync.config import (
+    DEFAULT_CERT_NAME,
+    MANAGED_MARKER,
+    NPM_EMAIL,
+    NPM_PASSWORD,
+    NPM_URL,
+)
 
 log = logging.getLogger("nginx-proxy-sync")
 

@@ -26,10 +26,10 @@ import time
 import docker
 import urllib3
 
-from clients import NPMClient, PiholeClient
-from config import NPM_DOMAIN, SYNC_INTERVAL
-from discovery import DockerDiscovery, TrueNASDiscovery
-from sync import SyncEngine
+from nginx_proxy_sync.clients import NPMClient, PiholeClient
+from nginx_proxy_sync.config import NPM_DOMAIN, SYNC_INTERVAL
+from nginx_proxy_sync.discovery import DockerDiscovery, TrueNASDiscovery
+from nginx_proxy_sync.sync import SyncEngine
 
 # Suppress warnings from TrueNAS self-signed cert requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

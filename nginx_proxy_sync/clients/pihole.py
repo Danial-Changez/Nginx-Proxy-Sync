@@ -5,7 +5,7 @@ from urllib.parse import quote
 
 import requests
 
-from config import NPM_IP, PIHOLE_PASSWORD, PIHOLE_URL
+from nginx_proxy_sync.config import NPM_IP, PIHOLE_PASSWORD, PIHOLE_URL
 
 log = logging.getLogger("nginx-proxy-sync")
 

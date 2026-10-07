@@ -3,9 +3,9 @@
 import logging
 import time
 
-from config import DEFAULT_SCHEME, NPM_DOMAIN, NPM_NETWORK
-from discovery.base import DiscoverySource
-from models import ProxyTarget
+from nginx_proxy_sync.config import DEFAULT_SCHEME, NPM_DOMAIN, NPM_NETWORK
+from nginx_proxy_sync.discovery.base import DiscoverySource
+from nginx_proxy_sync.models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 

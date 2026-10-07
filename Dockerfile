@@ -2,8 +2,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir docker requests
+COPY pyproject.toml ./
+COPY nginx_proxy_sync ./nginx_proxy_sync
 
-COPY . .
+RUN pip install --no-cache-dir .
 
-CMD ["python", "-u", "main.py"]
+CMD ["python", "-u", "-m", "nginx_proxy_sync"]
