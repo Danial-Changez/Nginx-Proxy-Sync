@@ -1,120 +1,104 @@
 # Nginx Proxy Sync
 
-Auto-discovers services and manages [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager) proxy hosts. Supports multiple discovery sources, periodic reconciliation, and optional Pi-hole DNS sync.
+Keeps [Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager) (NPM) proxy hosts, and optionally Pi-hole local DNS records, in step with the services that are actually running. It discovers Docker containers by label and TrueNAS apps through the TrueNAS API, then creates, updates and deletes proxy hosts through the NPM REST API.
 
-## Table of Contents
+## How it works
 
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Docker Labels](#docker-labels)
-- [Environment Variables](#environment-variables)
-- [How It Works](#how-it-works)
-- [Project Structure](#project-structure)
+1. On start it logs in to NPM (up to 30 attempts, 5 seconds apart), looks up the certificate named by `NPM_DEFAULT_CERT_NAME`, and writes any existing proxy hosts to `/data/npm-backup-<timestamp>.json` and `/data/npm-backup-latest.json`.
+2. It runs a full sync, then repeats it every `NPM_SYNC_INTERVAL` seconds:
+   - a discovered service whose domain has no proxy host gets one;
+   - a managed host whose forward host, port or scheme no longer matches its service is updated;
+   - with `NPM_DELETE_ORPHANS=true`, a managed host whose service is gone is deleted.
+3. Between syncs it follows Docker events. A labelled container that starts gets a proxy host if its domain has none. One that stops or dies has its managed host deleted, whatever `NPM_DELETE_ORPHANS` is set to.
 
-## Features
+Hosts created by this tool carry the marker `# managed-by:nginx-proxy-sync` in NPM's advanced-config field. Syncing and event handling only update or delete hosts that carry it, so a host you created by hand is left alone even if a discovered service uses the same domain.
 
-- **Docker discovery:** Detects containers with `npm.enable: "true"` label and creates proxy hosts automatically
-- **TrueNAS discovery:** Finds running apps via the TrueNAS API
-- **Static hosts:** Loads additional targets from a JSON config file
-- **CRUD:** Creates, updates, and deletes proxy hosts as services come and go
-- **Periodic sync:** Reconciles desired state on an interval, catching drift from manual changes or restarts
-- **Event-driven:** Reacts to Docker container start/stop events in real time
-- **Orphan cleanup:** *Optionally* removes managed proxy hosts whose source has disappeared
-- **Pi-hole DNS sync:** Automatically manages local DNS A records pointing to your NPM instance
-- **Wildcard SSL:** Assigns an existing wildcard certificate to all managed hosts
-- **Backup:** Snapshots all proxy hosts to JSON before each sync
+The one exception is `python -m nginx_proxy_sync --backup-and-purge`, which backs up and then deletes **every** proxy host, managed or not, and exits.
 
-## Quick Start
+### Pi-hole
 
-Sample docker-compose setup.
+When `PIHOLE_URL` and `PIHOLE_PASSWORD` are set, each sync also gives every discovered domain and every NPM proxy-host domain (managed or not) a Pi-hole v6 local DNS record pointing at `NPM_IP`, and removes records pointing at `NPM_IP` whose domain is no longer in that set. Records for other domains that point elsewhere are not touched.
 
-```yaml
-nginx-proxy-sync:
-  build: .
-  env_file: .env
-  environment:
-    NPM_URL: http://npm:81
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-  networks:
-    - proxy-net
-  depends_on:
-    - npm
-```
+## Docker labels
 
-See [examples/](examples/) for a full compose setup with NPM and a sample app.
-
-## Docker Labels
-
-Add these labels to any container you want proxied:
-
-```yaml
-labels:
-  # Required (allows detection)
-  npm.enable: "true"
-
-  # Optional overrides
-  npm.host: "app.example.com"
-  npm.port: "8080"
-  npm.scheme: "https"
-  npm.forward_host: "10.0.0.5"
-```
-
-| Label | Required | Description |
+| Label | Default | Description |
 |---|---|---|
-| `npm.enable` | Yes | Set to `"true"` to enable proxy discovery |
-| `npm.host` | No | Custom domain (default: `<container_name>.<NPM_DOMAIN>`) |
-| `npm.port` | No | Forward port (auto-detected from exposed ports, skipping 22/443) |
-| `npm.scheme` | No | Forward scheme (default: `NPM_DEFAULT_SCHEME`) |
-| `npm.forward_host` | No | Override forward address (default: container name if on `NPM_NETWORK`, otherwise container IP) |
+| `npm.enable` | - | Must be `"true"` for the container to be discovered |
+| `npm.host` | `<container name>.<NPM_DOMAIN>` | Domain of the proxy host |
+| `npm.port` | detected | Forward port. Detected from the exposed ports: the only one, or else the lowest that is not 22 or 443. A container with no exposed port and no label is skipped. |
+| `npm.scheme` | `NPM_DEFAULT_SCHEME` | Forward scheme |
+| `npm.forward_host` | detected | Forward address. Detected as the container name if the container is on `NPM_NETWORK`, otherwise its IP address. |
 
-## Environment Variables
+TrueNAS apps need no labels: each app in state `RUNNING` is proxied as `<app name>.<NPM_DOMAIN>`, forwarding to the host of `TRUENAS_URL` on the app's first TCP port published on `0.0.0.0`.
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `NPM_URL` | Yes | - | NPM API URL |
-| `NPM_EMAIL` | Yes | - | NPM admin email |
-| `NPM_PASSWORD` | Yes | - | NPM admin password |
-| `NPM_DOMAIN` | No | `""` | Base domain for auto-generated hostnames |
-| `NPM_DEFAULT_CERT_NAME` | No | `""` | Wildcard cert name to assign to hosts |
-| `NPM_DEFAULT_SCHEME` | No | `http` | Default forward scheme |
-| `NPM_NETWORK` | No | `""` | Docker network shared with NPM (containers are forwarded by name instead of IP) |
-| `NPM_DELETE_ORPHANS` | No | `false` | Delete managed hosts whose source is gone |
-| `NPM_SYNC_INTERVAL` | No | `60` | Seconds between periodic syncs |
-| `TRUENAS_URL` | No | `""` | TrueNAS API URL (enables TrueNAS discovery) |
-| `TRUENAS_API_KEY` | No | `""` | TrueNAS API key |
-| `TRUENAS_SKIP_APPS` | No | `glances` | Comma-separated app names to skip |
-| `PIHOLE_URL` | No | `""` | Pi-hole API URL (enables DNS sync) |
-| `PIHOLE_PASSWORD` | No | `""` | Pi-hole admin password |
-| `NPM_IP` | No | `""` | IP address of NPM for Pi-hole DNS records |
-| `NPM_REMOTE_CONFIG` | No | `/config/remote-hosts.json` | Path to static hosts JSON |
+## Configuration
 
-## How It Works
+All configuration is read from environment variables at start-up.
 
-1. On startup, authenticates with NPM and backs up existing proxy hosts
-2. Runs an initial sync - merges all discovery sources into a desired state and reconciles with NPM
-3. Starts a periodic sync thread (default: every 60s)
-4. Watches Docker events for real-time container start/stop handling
+| Variable | Default | Description |
+|---|---|---|
+| `NPM_URL` | required | Base URL of the NPM admin API, e.g. `http://npm:81` |
+| `NPM_EMAIL` | required | NPM account email |
+| `NPM_PASSWORD` | required | NPM account password |
+| `NPM_DOMAIN` | empty | Base domain for generated hostnames. Set it unless every container has an `npm.host` label and TrueNAS discovery is off. |
+| `NPM_DEFAULT_SCHEME` | `http` | Forward scheme when `npm.scheme` is not set |
+| `NPM_DEFAULT_CERT_NAME` | empty | Name of an existing NPM certificate (matched against its domain names or its nice name) to assign to created and updated hosts, which then also force SSL and enable HTTP/2 |
+| `NPM_NETWORK` | empty | Docker network shared with NPM; containers on it are forwarded by name instead of IP |
+| `NPM_DELETE_ORPHANS` | `false` | `true` deletes managed hosts whose service is gone during a sync |
+| `NPM_SYNC_INTERVAL` | `60` | Seconds between syncs |
+| `TRUENAS_URL` | empty | TrueNAS base URL. Discovery runs when this and `TRUENAS_API_KEY` are set. TLS certificates are not verified for this request. |
+| `TRUENAS_API_KEY` | empty | TrueNAS API key |
+| `TRUENAS_SKIP_APPS` | `glances` | Comma-separated app names to ignore |
+| `PIHOLE_URL` | empty | Pi-hole base URL. DNS sync runs when this and `PIHOLE_PASSWORD` are set. |
+| `PIHOLE_PASSWORD` | empty | Pi-hole password |
+| `NPM_IP` | empty | Address the Pi-hole records point at; set it when DNS sync is on |
 
-Managed hosts are tagged with a marker (`# managed-by:nginx-proxy-sync`) in the NPM advanced config field. The tool never modifies hosts it didn't create.
+`NPM_REMOTE_CONFIG` (default `/config/remote-hosts.json`) is also read, but only by the static-file source in `nginx_proxy_sync/discovery/remote.py`, which the entry point does not enable.
 
-## Project Structure
+## Running with Docker
+
+The service needs the Docker socket and network access to NPM. [examples/docker-compose.yml](examples/docker-compose.yml) runs it next to NPM and a sample `whoami` container:
+
+```sh
+cp examples/.env.example examples/.env   # then fill in the NPM account
+docker compose -f examples/docker-compose.yml up -d --build
+```
+
+To build the image on its own:
+
+```sh
+docker build -t nginx-proxy-sync .
+```
+
+Mount a volume at `/data` to keep the start-up backups.
+
+## Development
+
+Requires Python 3.12 or newer.
+
+```sh
+python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"
+
+ruff format --check .
+ruff check .
+pytest
+```
+
+The tests replace the NPM, Pi-hole and Docker clients with fakes, so they need neither a network nor a Docker daemon. CI runs the same three commands plus a Docker build on every push and pull request.
 
 ```
-nginx-proxy-sync/
-├── main.py              # entry point
-├── config.py            # environment variable loading
-├── models.py            # ProxyTarget dataclass
-├── sync.py              # reconciliation engine
-├── clients/
-│   ├── npm.py           # NPM API client
-│   └── pihole.py        # Pi-hole DNS client
-├── discovery/
-│   ├── base.py          # DiscoverySource ABC
-│   ├── docker.py        # Docker container discovery
-│   ├── truenas.py       # TrueNAS app discovery
-│   └── remote.py        # Static JSON file discovery
-└── examples/
-    ├── .env             # environment variable reference
-    └── docker-compose.yml
+nginx_proxy_sync/
+├── __main__.py     entry point: start-up, periodic sync, event loop
+├── config.py       environment variables
+├── models.py       ProxyTarget dataclass
+├── sync.py         reconciliation engine
+├── clients/        NPM and Pi-hole API clients
+└── discovery/      Docker, TrueNAS and static-file sources
+tests/
+examples/
 ```
+
+## License
+
+[MIT](LICENSE)
