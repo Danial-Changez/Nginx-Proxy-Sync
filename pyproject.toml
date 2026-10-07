@@ -1,0 +1,39 @@
+[project]
+name = "nginx-proxy-sync"
+version = "0.1.0"
+description = "Reconciles Docker containers and TrueNAS apps into Nginx Proxy Manager proxy hosts and Pi-hole DNS records."
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    # docker < 7.1 is incompatible with requests >= 2.32.
+    "docker>=7.1",
+    "requests>=2.32",
+    "urllib3>=1.26",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.16.10",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "G",    # logging format strings
+    "PT",   # pytest style
+    "ERA",  # commented-out code
+    "T20",  # print statements
+    "RUF",  # ruff-specific
+]
