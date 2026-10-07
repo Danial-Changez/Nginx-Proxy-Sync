@@ -48,3 +48,6 @@ select = [
     "T20",  # print statements
     "RUF",  # ruff-specific
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
