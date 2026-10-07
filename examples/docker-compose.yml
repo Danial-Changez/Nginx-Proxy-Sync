@@ -15,7 +15,7 @@ services:
 
   nginx-proxy-sync:
     container_name: nginx-proxy-sync
-    build: .
+    build: ..
     env_file: .env
     environment:
       NPM_URL: http://npm:81
