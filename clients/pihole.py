@@ -7,6 +7,7 @@ from config import PIHOLE_URL, PIHOLE_PASSWORD, NPM_IP
 
 log = logging.getLogger("nginx-proxy-sync")
 
+
 class PiholeClient:
     def __init__(self):
         self._sid = None

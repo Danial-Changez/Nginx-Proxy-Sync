@@ -23,12 +23,14 @@ class RemoteDiscovery(DiscoverySource):
 
         results = []
         for entry in entries:
-            results.append(ProxyTarget(
-                host=entry["host"],
-                port=str(entry["forward_port"]),
-                forward_host=entry["forward_host"],
-                scheme=entry.get("forward_scheme", DEFAULT_SCHEME),
-            ))
+            results.append(
+                ProxyTarget(
+                    host=entry["host"],
+                    port=str(entry["forward_port"]),
+                    forward_host=entry["forward_host"],
+                    scheme=entry.get("forward_scheme", DEFAULT_SCHEME),
+                )
+            )
 
         log.info("Loaded %d remote host(s) from %s", len(results), REMOTE_CONFIG)
         return results

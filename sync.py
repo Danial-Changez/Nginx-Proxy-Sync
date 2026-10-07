@@ -40,13 +40,21 @@ class SyncEngine:
                 ex = existing_by_domain[domain]
                 if _is_managed(ex) and _needs_update(ex, target):
                     try:
-                        self.npm.update_host(ex["id"], domain, target.forward_host, target.port, target.scheme)
+                        self.npm.update_host(
+                            ex["id"],
+                            domain,
+                            target.forward_host,
+                            target.port,
+                            target.scheme,
+                        )
                         updated += 1
                     except requests.HTTPError as e:
                         log.error("Failed to update %s: %s", domain, e)
             else:
                 try:
-                    self.npm.create_host(domain, target.forward_host, target.port, target.scheme)
+                    self.npm.create_host(
+                        domain, target.forward_host, target.port, target.scheme
+                    )
                     created += 1
                 except requests.HTTPError as e:
                     log.error("Failed to create %s: %s", domain, e)
@@ -62,7 +70,11 @@ class SyncEngine:
 
         log.info(
             "Sync complete: %d desired, %d existing, %d created, %d updated, %d deleted",
-            len(desired), len(existing), created, updated, deleted,
+            len(desired),
+            len(existing),
+            created,
+            updated,
+            deleted,
         )
 
         # Sync Pi-hole DNS for ALL NPM proxy host domains (managed + manual)
@@ -77,7 +89,9 @@ class SyncEngine:
         existing = self.npm.list_hosts()
         if any(target.host in h.get("domain_names", []) for h in existing):
             return
-        self.npm.create_host(target.host, target.forward_host, target.port, target.scheme)
+        self.npm.create_host(
+            target.host, target.forward_host, target.port, target.scheme
+        )
         if self.pihole:
             try:
                 self.pihole.add_host(target.host)

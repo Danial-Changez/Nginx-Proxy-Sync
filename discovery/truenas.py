@@ -5,7 +5,13 @@ from urllib.parse import urlparse
 
 import requests
 
-from config import TRUENAS_URL, TRUENAS_API_KEY, TRUENAS_SKIP_APPS, NPM_DOMAIN, DEFAULT_SCHEME
+from config import (
+    TRUENAS_URL,
+    TRUENAS_API_KEY,
+    TRUENAS_SKIP_APPS,
+    NPM_DOMAIN,
+    DEFAULT_SCHEME,
+)
 from models import ProxyTarget
 from discovery.base import DiscoverySource
 
@@ -42,12 +48,14 @@ class TrueNASDiscovery(DiscoverySource):
             if not port:
                 continue
 
-            results.append(ProxyTarget(
-                host=f"{name}.{NPM_DOMAIN}",
-                port=str(port),
-                forward_host=truenas_ip,
-                scheme=DEFAULT_SCHEME,
-            ))
+            results.append(
+                ProxyTarget(
+                    host=f"{name}.{NPM_DOMAIN}",
+                    port=str(port),
+                    forward_host=truenas_ip,
+                    scheme=DEFAULT_SCHEME,
+                )
+            )
 
         log.info("Discovered %d TrueNAS app(s) from %s", len(results), TRUENAS_URL)
         return results

@@ -7,6 +7,7 @@ from config import NPM_URL, NPM_EMAIL, NPM_PASSWORD, DEFAULT_CERT_NAME, MANAGED_
 
 log = logging.getLogger("nginx-proxy-sync")
 
+
 class NPMClient:
     def __init__(self):
         self._token = None
@@ -33,20 +34,33 @@ class NPMClient:
             log.info("No NPM_DEFAULT_CERT_NAME set, SSL certs will not be assigned")
             return
 
-        resp = requests.get(f"{NPM_URL}/api/nginx/certificates", headers=self._headers())
+        resp = requests.get(
+            f"{NPM_URL}/api/nginx/certificates", headers=self._headers()
+        )
         resp.raise_for_status()
 
         for cert in resp.json():
             if DEFAULT_CERT_NAME in cert.get("domain_names", []):
                 self.cert_id = cert["id"]
-                log.info("Found wildcard cert '%s' with id=%d", DEFAULT_CERT_NAME, self.cert_id)
+                log.info(
+                    "Found wildcard cert '%s' with id=%d",
+                    DEFAULT_CERT_NAME,
+                    self.cert_id,
+                )
                 return
             if DEFAULT_CERT_NAME in cert.get("nice_name", ""):
                 self.cert_id = cert["id"]
-                log.info("Found cert '%s' (nice_name match) with id=%d", cert["nice_name"], self.cert_id)
+                log.info(
+                    "Found cert '%s' (nice_name match) with id=%d",
+                    cert["nice_name"],
+                    self.cert_id,
+                )
                 return
 
-        log.warning("Certificate '%s' not found, hosts will be created without SSL cert", DEFAULT_CERT_NAME)
+        log.warning(
+            "Certificate '%s' not found, hosts will be created without SSL cert",
+            DEFAULT_CERT_NAME,
+        )
 
     def list_hosts(self):
         resp = requests.get(f"{NPM_URL}/api/nginx/proxy-hosts", headers=self._headers())
@@ -81,7 +95,13 @@ class NPMClient:
             headers=self._headers(),
         )
         resp.raise_for_status()
-        log.info("Created proxy host: %s -> %s:%s (%s)", domain, forward_host, forward_port, scheme)
+        log.info(
+            "Created proxy host: %s -> %s:%s (%s)",
+            domain,
+            forward_host,
+            forward_port,
+            scheme,
+        )
         return resp.json()
 
     def update_host(self, host_id, domain, forward_host, forward_port, scheme="http"):
@@ -92,7 +112,13 @@ class NPMClient:
             headers=self._headers(),
         )
         resp.raise_for_status()
-        log.info("Updated proxy host: %s -> %s:%s (%s)", domain, forward_host, forward_port, scheme)
+        log.info(
+            "Updated proxy host: %s -> %s:%s (%s)",
+            domain,
+            forward_host,
+            forward_port,
+            scheme,
+        )
         return resp.json()
 
     def delete_host(self, host_id, domain):

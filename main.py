@@ -73,8 +73,11 @@ def backup_and_purge(npm: NPMClient):
 
 def main():
     parser = argparse.ArgumentParser(description="Nginx Proxy Sync")
-    parser.add_argument("--backup-and-purge", action="store_true",
-                        help="Backup all proxy hosts to JSON and delete them, then exit")
+    parser.add_argument(
+        "--backup-and-purge",
+        action="store_true",
+        help="Backup all proxy hosts to JSON and delete them, then exit",
+    )
     args = parser.parse_args()
 
     log.info("Nginx Proxy Sync starting")

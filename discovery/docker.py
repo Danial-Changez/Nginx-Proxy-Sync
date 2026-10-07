@@ -65,7 +65,10 @@ class DockerDiscovery(DiscoverySource):
         host = labels.get("npm.host") or f"{container.name}.{NPM_DOMAIN}"
         port = labels.get("npm.port") or self._detect_port(container)
         if not port:
-            log.warning("Container %s: npm.enable=true but no port detectable, skipping", container.name)
+            log.warning(
+                "Container %s: npm.enable=true but no port detectable, skipping",
+                container.name,
+            )
             return None
 
         forward_host = labels.get("npm.forward_host") or self._get_ip(container)
