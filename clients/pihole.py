@@ -1,9 +1,11 @@
 """Pi-hole v6 API client - manages local DNS records."""
 
 import logging
-import requests
 from urllib.parse import quote
-from config import PIHOLE_URL, PIHOLE_PASSWORD, NPM_IP
+
+import requests
+
+from config import NPM_IP, PIHOLE_PASSWORD, PIHOLE_URL
 
 log = logging.getLogger("nginx-proxy-sync")
 

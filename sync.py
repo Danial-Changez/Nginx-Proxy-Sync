@@ -1,11 +1,13 @@
 """Sync engine - reconciles desired proxy state with NPM."""
 
 import logging
+
 import requests
-from config import MANAGED_MARKER, DELETE_ORPHANS
+
 from clients.npm import NPMClient
-from models import ProxyTarget
+from config import DELETE_ORPHANS, MANAGED_MARKER
 from discovery.base import DiscoverySource
+from models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 
@@ -69,7 +71,8 @@ class SyncEngine:
                         log.error("Failed to delete orphan %s: %s", domain, e)
 
         log.info(
-            "Sync complete: %d desired, %d existing, %d created, %d updated, %d deleted",
+            "Sync complete: %d desired, %d existing, "
+            "%d created, %d updated, %d deleted",
             len(desired),
             len(existing),
             created,

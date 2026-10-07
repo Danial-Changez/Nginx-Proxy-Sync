@@ -6,14 +6,14 @@ from urllib.parse import urlparse
 import requests
 
 from config import (
-    TRUENAS_URL,
+    DEFAULT_SCHEME,
+    NPM_DOMAIN,
     TRUENAS_API_KEY,
     TRUENAS_SKIP_APPS,
-    NPM_DOMAIN,
-    DEFAULT_SCHEME,
+    TRUENAS_URL,
 )
-from models import ProxyTarget
 from discovery.base import DiscoverySource
+from models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 

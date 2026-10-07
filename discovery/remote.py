@@ -1,12 +1,12 @@
 """Discover proxy targets from a static JSON config file."""
 
 import json
-import os
 import logging
+import os
 
-from config import REMOTE_CONFIG, DEFAULT_SCHEME
-from models import ProxyTarget
+from config import DEFAULT_SCHEME, REMOTE_CONFIG
 from discovery.base import DiscoverySource
+from models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 

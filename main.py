@@ -17,22 +17,22 @@ Per-service label overrides:
 
 import argparse
 import json
+import logging
 import os
 import sys
-import time
-import logging
 import threading
+import time
 
-import urllib3
 import docker
+import urllib3
+
+from clients import NPMClient, PiholeClient
+from config import NPM_DOMAIN, SYNC_INTERVAL
+from discovery import DockerDiscovery, TrueNASDiscovery
+from sync import SyncEngine
 
 # Suppress warnings from TrueNAS self-signed cert requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from config import NPM_DOMAIN, SYNC_INTERVAL
-from clients import NPMClient, PiholeClient
-from sync import SyncEngine
-from discovery import DockerDiscovery, TrueNASDiscovery
 
 log = logging.getLogger("nginx-proxy-sync")
 

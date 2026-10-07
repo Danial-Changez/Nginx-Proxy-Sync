@@ -1,11 +1,11 @@
 """Discover proxy targets from local Docker containers via labels."""
 
-import time
 import logging
+import time
 
-from config import NPM_DOMAIN, NPM_NETWORK, DEFAULT_SCHEME
-from models import ProxyTarget
+from config import DEFAULT_SCHEME, NPM_DOMAIN, NPM_NETWORK
 from discovery.base import DiscoverySource
+from models import ProxyTarget
 
 log = logging.getLogger("nginx-proxy-sync")
 
@@ -24,7 +24,7 @@ class DockerDiscovery(DiscoverySource):
         return results
 
     def watch_events(self, on_start, on_stop):
-        """Block and watch Docker events, calling callbacks on npm-enabled container lifecycle."""
+        """Block on Docker events, calling back as npm-enabled containers start/stop."""
         log.info("Watching Docker events...")
         for event in self.client.events(decode=True):
             status = event.get("status")

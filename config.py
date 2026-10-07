@@ -1,7 +1,7 @@
 """Config loaded from environment variables."""
 
-import os
 import logging
+import os
 
 logging.basicConfig(
     level=logging.INFO,

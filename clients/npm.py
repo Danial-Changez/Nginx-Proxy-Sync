@@ -1,9 +1,11 @@
 """NPM API client - handles auth, CRUD for proxy hosts, and cert lookup."""
 
-import time
 import logging
+import time
+
 import requests
-from config import NPM_URL, NPM_EMAIL, NPM_PASSWORD, DEFAULT_CERT_NAME, MANAGED_MARKER
+
+from config import DEFAULT_CERT_NAME, MANAGED_MARKER, NPM_EMAIL, NPM_PASSWORD, NPM_URL
 
 log = logging.getLogger("nginx-proxy-sync")
 
